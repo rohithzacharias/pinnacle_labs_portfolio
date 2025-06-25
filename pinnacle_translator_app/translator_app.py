@@ -4,24 +4,37 @@ from deep_translator import GoogleTranslator
 from speech_logic import recognize_speech, speak_text
 from document_logic import translate_document
 
-# Map language names to codes
-LANGUAGES = {
-    "Auto Detect": "auto",
-    "English": "en",
-    "Spanish": "es",
-    "French": "fr",
-    "German": "de",
-    "Hindi": "hi",
-    "Malayalam": "ml",
-    "Arabic": "ar",
-    "Chinese": "zh-cn",
-    "Japanese": "ja",
-    "Bengali": "bn",
-    "Tamil": "ta",
-    "Telugu": "te"
-}
+# ==================== Language List ====================
 
-# Translate helper
+# Priority languages including Auto Detect
+priority_languages = [
+    "Auto Detect",
+    "English",
+    "Malayalam",
+    "Kannada",
+    "Tamil",
+    "Telugu",
+    "Hindi"
+]
+
+# Fetch all supported languages as a dictionary {name: code}
+all_supported = GoogleTranslator().get_supported_languages(as_dict=True)
+
+# Combine priority list with all supported language names
+available_languages = list(
+    dict.fromkeys(priority_languages + list(all_supported.keys()))
+)
+
+# Build final LANGUAGES dictionary
+LANGUAGES = {}
+for lang_name in available_languages[:150]:
+    if lang_name == "Auto Detect":
+        LANGUAGES[lang_name] = "auto"
+    elif lang_name in all_supported:
+        LANGUAGES[lang_name] = all_supported[lang_name]
+
+# ==================== Translate Helper ====================
+
 def translate_text(text, dest_lang='en', src_lang='auto'):
     try:
         print(f"[DEBUG] Translating '{text}' from {src_lang} to {dest_lang}...")
@@ -32,14 +45,15 @@ def translate_text(text, dest_lang='en', src_lang='auto'):
         print(f"[DEBUG] Error: {e}")
         return f"Error: {e}"
 
-# Setup app
+# ==================== GUI Setup ====================
+
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
 app = ctk.CTk()
 app.title("🌐 AI Translator App")
 app.geometry("800x650")
-app.resizable(True, True)  # <- allows resizing window
+app.resizable(True, True)
 
 title_label = ctk.CTkLabel(
     app,
@@ -51,7 +65,8 @@ title_label.pack(pady=10)
 tabview = ctk.CTkTabview(app, width=760, height=550)
 tabview.pack(padx=10, pady=10, expand=True, fill="both")
 
-# -- 1) Text Translator Tab ---------------------------------
+# ==================== Text Translator Tab ====================
+
 text_tab = tabview.add("Text Translator")
 
 ctk.CTkLabel(text_tab, text="Input Text:").pack(pady=5)
@@ -73,7 +88,6 @@ dest_lang_menu = ctk.CTkOptionMenu(
 dest_lang_menu.pack(pady=5)
 
 ctk.CTkLabel(text_tab, text="Translated Text:").pack(pady=5)
-# 🔥 Reduce output box height so Translate button is visible
 output_textbox = ctk.CTkTextbox(text_tab, width=700, height=80)
 output_textbox.pack(pady=5)
 
@@ -96,7 +110,8 @@ ctk.CTkButton(
     height=40
 ).pack(pady=10)
 
-# -- 2) Speech Translator Tab ---------------------------------
+# ==================== Speech Translator Tab ====================
+
 speech_tab = tabview.add("Speech Translator")
 
 ctk.CTkLabel(speech_tab, text="Target Language:").pack(pady=10)
@@ -131,7 +146,8 @@ ctk.CTkButton(
     height=40
 ).pack(pady=10)
 
-# -- 3) Document Translator Tab ---------------------------------
+# ==================== Document Translator Tab ====================
+
 doc_tab = tabview.add("Document Translator")
 
 ctk.CTkLabel(doc_tab, text="Target Language:").pack(pady=10)
@@ -166,5 +182,7 @@ ctk.CTkButton(
     height=40
 ).pack(pady=10)
 
-# Run app
+# ==================== Run App ====================
+
 app.mainloop()
+# This is the main entry point for the translator application.
